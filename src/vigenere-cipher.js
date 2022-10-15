@@ -19,7 +19,7 @@
  */
 class VigenereCipheringMachine {
   constructor(isDirect = true) {
-    this.isDirect = isDirect; // direct / reverse
+    this.isDirect = isDirect;
   }
 
   encrypt(message, key, adjustKeyCb = val => val) {
@@ -32,8 +32,7 @@ class VigenereCipheringMachine {
       // Encrypt only English alphabet. Leave 'as is' otherwise.
       if (!this.isEnglishLetter(char)) return char;
 
-      const charCode = char.charCodeAt();
-      const isUpperCase = this.isUpperCase(charCode);
+      const isUpperCase = char === char.toUpperCase();
       const baseCode = isUpperCase ? 65 : 97;
 
       const keyLetter = key[keyLetterNo % key.length];
@@ -42,7 +41,7 @@ class VigenereCipheringMachine {
 
       keyLetterNo++;
       return String.fromCharCode(
-          (charCode - baseCode + adjustKeyCb(keyCharCode - baseCode)) % 26 + baseCode
+          (char.charCodeAt() - baseCode + adjustKeyCb(keyCharCode - baseCode)) % 26 + baseCode
         ).toUpperCase();
     }).join('');
 
@@ -50,7 +49,9 @@ class VigenereCipheringMachine {
   }
 
   decrypt(message, key) {
-    return this.encrypt(message, key, this.shiftKey);
+    // TODO: Ideally we would adjust key right here without passing any callback further to encrypt().
+    const shiftKey = key => (26 - key) % 26;
+    return this.encrypt(message, key, shiftKey);
   }
 
   reverseMessage(msg) {
@@ -59,14 +60,6 @@ class VigenereCipheringMachine {
 
   isEnglishLetter(char) {
     return char?.length === 1 && /[a-z]/i.test(char);
-  }
-
-  shiftKey(key) {
-    return (26 - key) % 26;
-  }
-
-  isUpperCase(charCode) {
-    return 65 <= charCode && charCode <= 90;
   }
 }
 
