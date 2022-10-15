@@ -25,63 +25,63 @@ class VigenereCipheringMachine {
   encrypt(message, key) {
     if (!message || !key) throw new Error('Incorrect arguments!');
 
-    let encrypted = '';
-    let j = 0;
+    let keyLetterNo = 0;
 
-    for (let i = 0; i < message.length; i++) {
-      const charCode = message[i].charCodeAt(0);
+    const output = [...message].map(char => {
+      // Encrypt only English alphabet. Leave 'as is' otherwise.
+      if (!this.isEnglishLetter(char)) return char;
 
-      if (this.isUpperCase(charCode)) {
-        const keyCharCode = key[j % key.length].toUpperCase().charCodeAt();
-        encrypted += String.fromCharCode((charCode + keyCharCode - 2 * 65) % 26 + 65);
-        j++;
-      } else if (this.isLowerCase(charCode)) {
-        const keyCharCode = key[j % key.length].toLowerCase().charCodeAt();
-        encrypted += String.fromCharCode((charCode + keyCharCode - 2 * 97) % 26 + 97);
-        j++;
-      } else {
-        encrypted += message[i];
-      }
-    }
+      const charCode = char.charCodeAt();
+      const isUpperCase = this.isUpperCase(charCode);
+      const baseCode = isUpperCase ? 65 : 97;
+      const keyCharCode = isUpperCase ?
+        key[keyLetterNo % key.length].toUpperCase().charCodeAt() :
+        key[keyLetterNo % key.length].toLowerCase().charCodeAt();
 
-    return encrypted.toUpperCase();
+      keyLetterNo++;
+      return String.fromCharCode((charCode + keyCharCode - 2 * baseCode) % 26 + baseCode).toUpperCase();
+    }).join('');
+
+    return this.isDirect ? output : this.reverseMessage(output);
   }
 
   decrypt(message, key) {
     if (!message || !key) throw new Error('Incorrect arguments!');
 
-    let encrypted = '';
-    let j = 0;
+    let keyLetterNo = 0;
 
-    for (let i = 0; i < message.length; i++) {
-      const charCode = message[i].charCodeAt(0);
+    const output = [...message].map(char => {
+      // Encrypt only English alphabet. Leave 'as is' otherwise.
+      if (!this.isEnglishLetter(char)) return char;
 
-      if (this.isUpperCase(charCode)) {
-        const keyCharCode = key[j % key.length].toUpperCase().charCodeAt();
-        encrypted += String.fromCharCode((charCode - 65 + this.shiftKey(keyCharCode - 65)) % 26 + 65);
-        j++;
-      } else if (this.isLowerCase(charCode)) {
-        const keyCharCode = key[j % key.length].toLowerCase().charCodeAt();
-        encrypted += String.fromCharCode((charCode - 97 + this.shiftKey(keyCharCode - 97)) % 26 + 97);
-        j++;
-      } else {
-        encrypted += message[i];
-      }
-    }
+      const charCode = char.charCodeAt();
+      const isUpperCase = this.isUpperCase(charCode);
+      const baseCode = isUpperCase ? 65 : 97;
+      const keyCharCode = isUpperCase ?
+        key[keyLetterNo % key.length].toUpperCase().charCodeAt() :
+        key[keyLetterNo % key.length].toLowerCase().charCodeAt();
 
-    return encrypted.toUpperCase();
+      keyLetterNo++;
+      return String.fromCharCode((charCode - baseCode + this.shiftKey(keyCharCode - baseCode)) % 26 + baseCode).toUpperCase();
+    }).join('');
+
+    return this.isDirect ? output : this.reverseMessage(output);
+  }
+
+  reverseMessage(msg) {
+    return [...msg].reverse().join('');
+  }
+
+  isEnglishLetter(char) {
+    return char?.length === 1 && /[a-z]/i.test(char);
   }
 
   shiftKey(key) {
     return (26 - key) % 26;
   }
 
-  isUpperCase(char) {
-    return 65 <= char && char <= 90;
-  }
-
-  isLowerCase(char) {
-    return 97 <= char && char <= 122;
+  isUpperCase(charCode) {
+    return 65 <= charCode && charCode <= 90;
   }
 }
 
